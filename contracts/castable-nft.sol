@@ -3,11 +3,19 @@ pragma solidity ^0.8.12;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "https://github.com/MetaplasiaTeam/castable-nft/blob/main/constracts/ERC721/IERC721Castable.sol";
 // npm install @openzeppelin-contracts required
 
+interface IERC20 {
+    function allowance(address owner, address spender) external view returns (uint256);
+    function transfer(address to, uint256 amount) external returns (bool);
+    function transferFrom(
+        address from,
+        address to,
+        uint256 amount
+    ) external returns (bool);
 
+}
 
 contract CastableNFT is ERC721, Ownable,IERC721Castable {
     uint256 public tokenCounter;
