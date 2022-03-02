@@ -39,6 +39,13 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
     mapping(uint256 => mapping(address => uint256)) private _erc721TokenIds;
 
 
+     struct Collectible {
+        uint256 id;
+        uint256 value;
+        address addr;
+        string  uri;
+        
+    }
 
     constructor()  ERC721 ("Castable NFT", "CASTABLE") {
         tokenCounter = 0;
@@ -62,7 +69,21 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
     }
 
 
-    function tokenValue(uint256 _tokenId) external view existToken(_tokenId) returns (address addr, uint256 value) {
+    function getCollectiblesByOwner(address _owner) public view returns(Collectible[] memory) {
+        Collectible[] memory collectibles = new Collectible[](balanceOf(_owner));
+        uint256 counter;
+        for (uint i = 0; i < tokenCounter; i++) {
+            if (_owners[i] == _owner) {
+                (address addr, uint256 value) = tokenValue(i);
+                collectibles[counter] = Collectible(i,value,addr,_tokenURIs[i]);
+                counter++;
+            }
+        }
+        return collectibles;
+    }
+
+
+    function tokenValue(uint256 _tokenId) public view existToken(_tokenId) returns (address addr, uint256 value) {
         if (_tokenMintTyp[_tokenId] == 1) {
             addr = address(0);
             value = _tokenValues[_tokenId];
