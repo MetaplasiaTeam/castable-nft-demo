@@ -57,6 +57,11 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
         return _tokenURIs[_tokenId];
     }
 
+    function totalSupply() public view returns (uint256) {
+        return tokenCounter;
+    }
+
+
     function tokenValue(uint256 _tokenId) external view existToken(_tokenId) returns (address addr, uint256 value) {
         if (_tokenMintTyp[_tokenId] == 1) {
             addr = address(0);
