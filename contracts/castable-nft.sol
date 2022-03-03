@@ -122,13 +122,13 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
      * @dev create multiple collections with the same uri
      */
     function createMultipleCollectibles(string memory _uri, uint256 count,uint256 _burnBlockNum) external payable returns (uint256[] memory) {
-        require(msg.value >= minMintValue, "Less than the minimum casting value");
         uint256[] memory ids = new uint[](count);
-        uint256 castingValue = msg.value / count;
+        uint256 avgValue = msg.value / count;
+        require(avgValue >= minMintValue, "Less than the minimum casting value");
         for (uint256 i = 0; i < count; i++) {
             uint256 newItemId = _createCollectible(_uri);
             ids[i] = newItemId;
-            _tokenValues[newItemId] = castingValue;
+            _tokenValues[newItemId] = avgValue;
             _tokenBurnBlockNum[newItemId] = _burnBlockNum;
             _tokenMintTyp[newItemId] = 1;
         }
@@ -145,17 +145,16 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
      *
      */
     function createMultipleCollectiblesCustom(string[] memory _uris, uint256[] memory _values,uint256 _burnBlockNum) external payable returns (uint256[] memory) {
-        require(msg.value >= minMintValue, "Less than the minimum casting value");
         require(_uris.length == _values.length, "Inconsistent length");
         uint256 totalValue;
         for (uint256 i = 0; i < _values.length; i++) {
+            require(_values[i] >= minMintValue, "Payable value must greater than _values!");
             totalValue += _values[i];
         }
+        require(msg.value >= totalValue, "Payable value must greater than the sum of the custom values");
 
-        require(msg.value >= totalValue, "Payable value must greater than _values!");
 
-
-        uint256[] memory ids = new uint[](_uris.length);
+    uint256[] memory ids = new uint[](_uris.length);
         for (uint256 i = 0; i < _uris.length; i++) {
             uint256 newItemId = _createCollectible(_uris[i]);
             ids[i] = newItemId;
@@ -208,11 +207,12 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
         require(erc20Token.transferFrom(msg.sender, address(this), _value), "Transfer failed!");
 
         uint256[] memory ids = new uint[](count);
-        uint256 aveCastingValue = _value / count;
+        uint256 avgValue = _value / count;
+        require(avgValue > 0, "Avg value must be greater than 0");
         for (uint256 i = 0; i < count; i++) {
             uint256 newItemId = _createCollectible(_uri);
             _erc20TokenAddrs[newItemId] = _addr;
-            _tokenValues[newItemId] = aveCastingValue;
+            _tokenValues[newItemId] = avgValue;
             _tokenBurnBlockNum[newItemId] = _burnBlockNum;
             _tokenMintTyp[newItemId] = 2;
             ids[i] = newItemId;
@@ -234,10 +234,9 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
         require(_uris.length == _values.length, "Inconsistent length");
         uint256 totalValue;
         for (uint256 i = 0; i < _values.length; i++) {
+            require(_values[i] > 0, "Value must be greater than 0");
             totalValue += _values[i];
         }
-        require(totalValue > 0, "TotalValue must be greater than 0");
-
         IERC20 erc20Token = IERC20(_addr);
         require(erc20Token.allowance(msg.sender, address(this)) >= totalValue, "Insufficient allowance!");
         require(erc20Token.transferFrom(msg.sender, address(this), totalValue), "Transfer failed!");
