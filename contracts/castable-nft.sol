@@ -92,10 +92,13 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
     }
 
  
-    function _create(string memory _uri) private returns (uint256)  {
+    function _create(string memory _uri,uint256 _value,address _addr,uint256 _burnBlockNum) private returns (uint256)  {
         uint256 newItemId = tokenCounter;
         _safeMint(msg.sender, newItemId);
         _tokenURIs[newItemId] = _uri;
+        _tokenValues[newItemId] =_value;
+        _tokenAddrs[newItemId] = _addr;
+        _tokenBurnBlockNum[newItemId] = _burnBlockNum;
         tokenCounter ++;
         return newItemId;
     }
@@ -107,9 +110,7 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
      */
     function mint(string memory _uri,uint256 _burnBlockNum) external payable returns (uint256) {
         require(msg.value >= minMintValue, "Less than the minimum casting value");
-        uint256 newItemId = _create(_uri);
-        _tokenValues[newItemId] = msg.value;
-        _tokenBurnBlockNum[newItemId] = _burnBlockNum;
+        uint256 newItemId = _create(_uri,msg.value,address(0),_burnBlockNum);
         _tokenMintTyp[newItemId] = 1;
         return newItemId;
     }
@@ -122,10 +123,8 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
         uint256 avgValue = msg.value / count;
         require(avgValue >= minMintValue, "Less than the minimum casting value");
         for (uint256 i = 0; i < count; i++) {
-            uint256 newItemId = _create(_uri);
+            uint256 newItemId = _create(_uri,avgValue,address(0),_burnBlockNum);
             ids[i] = newItemId;
-            _tokenValues[newItemId] = avgValue;
-            _tokenBurnBlockNum[newItemId] = _burnBlockNum;
             _tokenMintTyp[newItemId] = 1;
         }
         return ids;
@@ -152,10 +151,8 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
 
         uint256[] memory ids = new uint[](_uris.length);
         for (uint256 i = 0; i < _uris.length; i++) {
-            uint256 newItemId = _create(_uris[i]);
+            uint256 newItemId = _create(_uris[i],_values[i],address(0),_burnBlockNum);
             ids[i] = newItemId;
-            _tokenValues[newItemId] = _values[i];
-            _tokenBurnBlockNum[newItemId] = _burnBlockNum;
             _tokenMintTyp[newItemId] = 1;
         }
         return ids;
@@ -178,10 +175,7 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
         require(erc20Token.allowance(msg.sender, address(this)) >= _value, "Insufficient allowance!");
         require(erc20Token.transferFrom(msg.sender, address(this), _value), "Transfer failed!");
 
-        uint256 newItemId = _create(_uri);
-        _tokenAddrs[newItemId] = _addr;
-        _tokenValues[newItemId] = _value;
-        _tokenBurnBlockNum[newItemId] = _burnBlockNum;
+        uint256 newItemId = _create(_uri,_value,_addr,_burnBlockNum);
         _tokenMintTyp[newItemId] = 2;
         return newItemId;
     }
@@ -206,10 +200,7 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
         uint256 avgValue = _value / count;
         require(avgValue > 0, "Avg value must be greater than 0");
         for (uint256 i = 0; i < count; i++) {
-            uint256 newItemId = _create(_uri);
-            _tokenAddrs[newItemId] = _addr;
-            _tokenValues[newItemId] = avgValue;
-            _tokenBurnBlockNum[newItemId] = _burnBlockNum;
+            uint256 newItemId = _create(_uri,avgValue,_addr,_burnBlockNum);
             _tokenMintTyp[newItemId] = 2;
             ids[i] = newItemId;
         }
@@ -241,10 +232,7 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
 
         uint256[] memory ids = new uint[](_uris.length);
         for (uint256 i = 0; i < _uris.length; i++) {
-            uint256 newItemId = _create(_uris[i]);
-            _tokenAddrs[newItemId] = _addr;
-            _tokenValues[newItemId]= _values[i];
-            _tokenBurnBlockNum[newItemId] = _burnBlockNum;
+            uint256 newItemId = _create(_uris[i],_values[i],_addr,_burnBlockNum);
             _tokenMintTyp[newItemId] = 2;
             ids[i] = newItemId;
         }
@@ -264,11 +252,7 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
         erc721Token.transferFrom(msg.sender, address(this), _id);
 
   
-        uint256 newItemId = _create(_uri);
-        // add 1 here so that don't get cast if id = 0;
-        _tokenAddrs[newItemId] = _addr;
-        _tokenValues[newItemId] = _id;
-        _tokenBurnBlockNum[newItemId] = _burnBlockNum;
+        uint256 newItemId = _create(_uri,_id,_addr,_burnBlockNum);
         _tokenMintTyp[newItemId] = 3;
         return newItemId;
     }
@@ -285,10 +269,7 @@ contract CastableNFT is ERC721, Ownable,IERC721Castable {
             require(erc721Token.getApproved(_ids[i]) == address(this), "Contract is not approved for this erc721 token");
             erc721Token.transferFrom(msg.sender, address(this), _ids[i]);
 
-            uint256 newItemId = _create(_uris[i]);
-            _tokenAddrs[newItemId] = _addr;
-            _tokenValues[newItemId] = _ids[i];
-            _tokenBurnBlockNum[newItemId] = _burnBlockNum;
+            uint256 newItemId = _create(_uris[i],_ids[i],_addr,_burnBlockNum);
             _tokenMintTyp[newItemId] = 3;
             ids[i] = newItemId;
         }
